@@ -11,7 +11,7 @@ class SingleDelegated(object):
         return getattr(self.delegate, item)
 
     def __setattr__(self, name, value):
-        if self.delegate is None or hasattr(self, name):
+        if self.delegate is None or name in self.__dict__:
             self.__dict__[name] = value
         else:
             setattr(self.delegate, name, value)
@@ -33,7 +33,7 @@ class MultiDelegated(object):
 
     @property
     def delegates(self):
-        return self.__delegate
+        return self.__delegates
 
     def set_default_predicate(self, predicate):
         self.__default_predicate = predicate
@@ -64,7 +64,7 @@ class MultiDelegated(object):
         return self.__routine_attr(name, routine_attrs)
 
     def __setattr__(self, name, value):
-        if self.__delegates is None or hasattr(self, name):
+        if self.__delegates is None or name in self.__dict__:
             self.__dict__[name] = value
         else:
             for delegate in self.__delegates:
@@ -84,6 +84,14 @@ if __name__ == '__main__':
 
         def xyz(self, arg):
             return 'A.xyz', self.__class__
+
+        @property
+        def delegated_property(self):
+            return self.value
+
+        @delegated_property.setter
+        def delegated_property(self, value):
+            self.value = value
 
 
     class B(SingleDelegated):
@@ -128,6 +136,11 @@ if __name__ == '__main__':
     assert C(B()).value == B.value
     assert C(B(A())).value == B.value
 
+    # Test SingleDelegated properties
+    b = B(A())
+    b.delegated_property = 'another value'
+    assert b.delegate.delegated_property == 'another value'
+
     # Test MultiDelegated callables
     assert D().foo('arg') == ('D.foo', D)
 
@@ -164,3 +177,9 @@ if __name__ == '__main__':
     assert D(B(A()), B(), C(B())).foo('arg') == ('D.foo', D)
     assert D(B(A()), B(), C(B())).bar('arg') == [('B.bar', B), ('B.bar', B), ('B.bar', B)]
     assert D(B(A()), B(A()), C(B())).xyz('arg') == [('A.xyz', A), ('A.xyz', A), ('C.xyz', C)]
+
+    # Test MultiDelegated properties
+    d = D(A())
+    d.delegated_property = 'another value'
+    assert d.delegated_property  == ['another value']
+    assert d.delegates[0].delegated_property  == 'another value'

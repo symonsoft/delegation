@@ -1,4 +1,4 @@
-# delegation v.1.0
+# delegation v.1.1
 Python delegate pattern library
 
 ## About
@@ -35,24 +35,15 @@ class C(MultiDelegated):
     def xyz(self):
         return 'C.xyz()', self.__class__.__name__
 
-print B(A()).foo()
-print B(A()).bar()
-print B(A()).xyz()
+print(B(A()).foo())  # ('B.foo()', 'B')
+print(B(A()).bar())  # ('A.bar()', 'A')
+print(B(A()).xyz())  # ('A.xyz()', 'A')
 
-print C(A(), B(A())).foo()
-print C(A(), B(A())).bar()
-print C(A(), B(A())).xyz()
+print(C(A(), B(A())).foo())  # [('A.foo()', 'A'), ('B.foo()', 'B')]
+print(C(A(), B(A())).bar())  # [('A.bar()', 'A'), ('A.bar()', 'A')]
+print(C(A(), B(A())).xyz())  # ('C.xyz()', 'C')
+```
 
-```
-Output:
-```
-('B.foo()', 'B')
-('A.bar()', 'A')
-('A.xyz()', 'A')
-[('A.foo()', 'A'), ('B.foo()', 'B')]
-[('A.bar()', 'A'), ('A.bar()', 'A')]
-('C.xyz()', 'C')
-```
 
 ## License
 BSD
